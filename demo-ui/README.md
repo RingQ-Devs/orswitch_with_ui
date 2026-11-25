@@ -4,12 +4,38 @@ A deliberately small PHP + HTML front end that shows how to drive an
 **ORswitch** from your own web app. It is a starting point to read and copy
 from, not a finished product.
 
+## Install on a server (Debian / Ubuntu)
+
+```
+git clone https://github.com/RingQ-Devs/orswitch_with_ui
+cd orswitch_with_ui/demo-ui
+sudo bash install.sh
+```
+
+The installer asks for:
+
+- the **host name** of the server (its DNS name must already point to it),
+- the **ORswitch address** (default `https://<host>:8443`), its **administrator user name and password**
+  (typed hidden, and checked against the switch once), and the company (domain) to manage,
+- the demo's **own administrator user name and password** (hidden, typed twice, 10+ characters with letters and a
+  digit; press Enter to have a strong one generated and shown once at the end),
+- the **certificate**: Let's Encrypt (needs port 80 free for the check) or self-signed.
+
+Then it installs nginx and PHP-FPM, copies the demo to `/var/www/openrings-demo`, writes
+`config.local.php` (readable by root and the web server only), creates the administrator, and serves the demo over
+HTTPS on port 443, with the `/orws` WebSocket proxy the WebRTC phone needs. Open port 443 in your firewall.
+Port 80 stays free for certificate renewal. Run it again to change answers; existing administrators are kept
+unless you say otherwise, and old settings are saved under `/var/lib/openrings-demo/`.
+For scripts, every answer can be given as an environment variable: see the top of `install.sh`.
+`--no-nginx` only installs PHP and the files (you bring your own web server), `--no-cert` skips the certificate.
+
 ## Login
 
 Every page needs a login:
 
-1. **First run.** The first visit to `login.php` creates the administrator (10+ characters, letters and a digit).
-   **Do this right after installing**: until an administrator exists, whoever opens the page first creates it.
+1. **First run.** If you did not use `install.sh`, the first visit to `login.php` creates the administrator (10+
+   characters, letters and a digit). **Do this right after installing**: until an administrator exists, whoever
+   opens the page first creates it.
 2. **Passwords** are stored hashed (`password_hash`) in `data/users.json`. Five failed logins per user name or
    address lock that name/address for 15 minutes. Sessions are HttpOnly and SameSite=Strict, and every form has a
    CSRF token. Sign out is in the top bar.
